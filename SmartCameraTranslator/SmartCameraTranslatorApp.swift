@@ -11,7 +11,7 @@ import SwiftUI
 struct SmartCameraTranslatorApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            CameraView()
         }
     }
 }

@@ -40,23 +40,50 @@ struct CameraPreviewView: UIViewRepresentable {
 struct CameraView: View {
   @StateObject private var cameraVM = CameraViewModel()
   @State private var showSettings = false
+  @State private var isDetecting = true
   
   var body: some View {
     ZStack {
       if cameraVM.isAuthorized {
-        CameraPreviewView(session: cameraVM.captureSession)
-          .ignoresSafeArea()
-          .onAppear {
-            cameraVM.startSession()
-          }
-          .onDisappear {
-            cameraVM.stopSession()
-          }
+        GeometryReader { geometry in
+          CameraPreviewView(session: cameraVM.captureSession)
+            .ignoresSafeArea()
+            .onAppear {
+              cameraVM.startSession()
+            }
+            .onDisappear {
+              cameraVM.stopSession()
+            }
+            .overlay(
+              // Add translation overlay
+              TranslationOverlay(
+                detectedTexts: cameraVM.detectedTexts,
+                geometrySize: geometry.size
+              )
+              .allowsHitTesting(true)
+            )
+        }
         
-        //  MARK: - Overlay UI
+        // UI Controls overlay
         VStack {
           HStack {
+            // Detection toggle
+            Button(action: {
+              isDetecting.toggle()
+              if !isDetecting {
+                cameraVM.visionServicePublisher.clearDetections()
+              }
+            }) {
+              Image(systemName: isDetecting ? "eye.fill" : "eye.slash.fill")
+                .font(.title2)
+                .foregroundColor(.white)
+                .padding()
+                .background(Circle().fill(isDetecting ? Color.blue : Color.gray))
+            }
+            .padding()
+            
             Spacer()
+            
             Button(action: { showSettings.toggle() }) {
               Image(systemName: "gear")
                 .font(.title2)
@@ -69,46 +96,57 @@ struct CameraView: View {
           
           Spacer()
           
-          //  MARK: - Bottom control area
+          // Status indicator
           VStack {
-            Text("Point camera at text")
-              .font(.caption)
-              .foregroundColor(.white)
-              .padding(.horizontal, 16)
-              .padding(.vertical, 8)
-              .background(Capsule().fill(Color.black.opacity(0.5)))
-          }
-          .padding(.bottom, 50)
-        }
-      } else {
-        // MARK: - No camera permission view
-        VStack(spacing: 20) {
-          Image(systemName: "camera.fill")
-            .font(.system(size: 60))
-            .foregroundColor(.gray)
-          
-          Text("Camera Access Required")
-            .font(.title2)
-          
-          Text("Please enable camera access in Settings")
-            .font(.caption)
-            .foregroundColor(.gray)
-          
-          Button("Open Settings") {
-            if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
-              UIApplication.shared.open(settingsURL)
+            if !cameraVM.detectedTexts.isEmpty {
+              Text("\(cameraVM.detectedTexts.count) text(s) detected")
+                .font(.caption)
+                .foregroundColor(.white)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(Capsule().fill(Color.green))
+                .transition(.scale)
+            } else {
+              Text("Point camera at text")
+                .font(.caption)
+                .foregroundColor(.white)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(Capsule().fill(Color.black.opacity(0.5)))
             }
           }
-          .buttonStyle(.borderedProminent)
+          .padding(.bottom, 50)
+          .animation(.easeInOut, value: cameraVM.detectedTexts.count)
+        }
+      } else {
+          // MARK: - No camera permission view
+          VStack(spacing: 20) {
+            Image(systemName: "camera.fill")
+              .font(.system(size: 60))
+              .foregroundColor(.gray)
+            
+            Text("Camera Access Required")
+              .font(.title2)
+            
+            Text("Please enable camera access in Settings")
+              .font(.caption)
+              .foregroundColor(.gray)
+            
+            Button("Open Settings") {
+              if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
+                UIApplication.shared.open(settingsURL)
+              }
+            }
+            .buttonStyle(.borderedProminent)
+          }
         }
       }
-    }
-    .sheet(isPresented: $showSettings) {
-      SettingsView()
+        .sheet(isPresented: $showSettings) {
+          SettingsView()
+        }
     }
   }
-}
-
-#Preview {
-  CameraView()
-}
+  
+  #Preview {
+    CameraView()
+  }

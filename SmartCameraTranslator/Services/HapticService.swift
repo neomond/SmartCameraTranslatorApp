@@ -5,14 +5,28 @@
 //  Created by Nazrin Atayeva on 17.08.25.
 //
 
-import SwiftUI
+import UIKit
 
-struct HapticService: View {
-    var body: some View {
-        Text("HapticService")
+class HapticService {
+    static let shared = HapticService()
+    
+    private init() {}
+    
+    func impact(style: UIImpactFeedbackGenerator.FeedbackStyle) {
+        let generator = UIImpactFeedbackGenerator(style: style)
+        generator.prepare()
+        generator.impactOccurred()
     }
-}
-
-#Preview {
-    HapticService()
+    
+    func notification(type: UINotificationFeedbackGenerator.FeedbackType) {
+        let generator = UINotificationFeedbackGenerator()
+        generator.prepare()
+        generator.notificationOccurred(type)
+    }
+    
+    func selection() {
+        let generator = UISelectionFeedbackGenerator()
+        generator.prepare()
+        generator.selectionChanged()
+    }
 }

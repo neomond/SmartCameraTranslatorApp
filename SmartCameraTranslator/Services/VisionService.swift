@@ -18,9 +18,10 @@ class VisionService: ObservableObject {
   private var lastProcessTime = Date()
   private let processInterval: TimeInterval = 0.5
   
-  // Add filtering parameters
-  private let minimumConfidence: Float = 0.5
-  private let minimumTextLength: Int = 2
+  // Enhanced filtering parameters
+  private let minimumConfidence: Float = 0.7
+  private let minimumTextLength: Int = 3
+  private let minimumTextHeight: CGFloat = 0.04
   
   func processBuffer(_ buffer: CVPixelBuffer) {
     let now = Date()
@@ -45,33 +46,39 @@ class VisionService: ObservableObject {
         return
       }
       
-      // Filter and process texts
+      // Enhanced filtering and processing
       let texts = observations.compactMap { observation -> DetectedText? in
-        guard let topCandidate = observation.topCandidates(1).first,
-              !topCandidate.string.isEmpty,
+        guard let topCandidate = observation.topCandidates(1).first else { return nil }
+        
+        let text = topCandidate.string.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // Apply all filters
+        guard text.count >= self.minimumTextLength,
               topCandidate.confidence >= self.minimumConfidence,
-              topCandidate.string.count >= self.minimumTextLength,
-              self.isRelevantText(topCandidate.string) else { return nil }
+              observation.boundingBox.height >= self.minimumTextHeight,
+              self.isReadableText(text) else { return nil }
         
         return DetectedText(
-          text: topCandidate.string,
+          text: text,
           boundingBox: observation.boundingBox,
           confidence: topCandidate.confidence
         )
       }
       
-      // Group nearby texts and take only the most prominent ones
-      let groupedTexts = self.groupNearbyTexts(texts)
+      // Sort by confidence and limit results
+      let filteredTexts = texts
+        .sorted { $0.confidence > $1.confidence }
+        .prefix(6)
       
       DispatchQueue.main.async {
-        self.detectedTexts = groupedTexts
-        self.isProcessing = !groupedTexts.isEmpty
+        self.detectedTexts = Array(filteredTexts)
+        self.isProcessing = !filteredTexts.isEmpty
       }
     }
     
-    request.recognitionLevel = .accurate
+    request.recognitionLevel = VNRequestTextRecognitionLevel.accurate
     request.usesLanguageCorrection = true
-    request.minimumTextHeight = 0.03 // Increased to filter out tiny text
+    request.minimumTextHeight = Float(minimumTextHeight)
     
     do {
       let handler = VNImageRequestHandler(cvPixelBuffer: buffer, options: [:])
@@ -81,27 +88,28 @@ class VisionService: ObservableObject {
     }
   }
   
-  // Filter out single characters and symbols
-  private func isRelevantText(_ text: String) -> Bool {
-    // Skip single characters unless they're meaningful
-    if text.count == 1 && !["I", "A"].contains(text) {
+  private func isReadableText(_ text: String) -> Bool {
+    // Skip single characters unless they're meaningful words
+    if text.count == 1 && !["I", "A", "a"].contains(text) {
       return false
     }
     
-    // Skip if it's just symbols/punctuation
-    let letters = text.filter { $0.isLetter }
-    return !letters.isEmpty
-  }
-  
-  // Group texts that are close together
-  private func groupNearbyTexts(_ texts: [DetectedText]) -> [DetectedText] {
-    // Take only top 10 largest text areas
-    let sortedBySize = texts.sorted {
-      ($0.boundingBox.width * $0.boundingBox.height) >
-      ($1.boundingBox.width * $1.boundingBox.height)
+    // Must contain at least 50% letters
+    let letterCount = text.filter { $0.isLetter }.count
+    let totalCount = text.count
+    guard Double(letterCount) / Double(totalCount) >= 0.5 else { return false }
+    
+    // Skip barcode-like patterns
+    let barcodePatterns = ["|||", "||||", "----", "====", "123456", "67890"]
+    for pattern in barcodePatterns {
+      if text.contains(pattern) { return false }
     }
     
-    return Array(sortedBySize.prefix(10))
+    // Skip texts that are mostly numbers (like barcodes)
+    let numberCount = text.filter { $0.isNumber }.count
+    if Double(numberCount) / Double(totalCount) > 0.8 { return false }
+    
+    return true
   }
   
   func clearDetections() {

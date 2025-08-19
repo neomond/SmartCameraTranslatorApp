@@ -10,6 +10,7 @@ import SwiftUI
 struct SettingsView: View {
   @Environment(\.dismiss) var dismiss
   @StateObject private var translationService = TranslationService()
+  @State private var showLanguageInfo = false
   
   var body: some View {
     NavigationView {
@@ -48,6 +49,24 @@ struct SettingsView: View {
           }
         }
         
+        Section("Translation Engine") {
+          HStack {
+            Label("Engine Type", systemImage: "brain")
+            Spacer()
+            Text("Enhanced Dictionary")
+              .foregroundColor(.blue)
+          }
+          
+          Button(action: { showLanguageInfo = true }) {
+            HStack {
+              Label("Language Packs", systemImage: "globe")
+              Spacer()
+              Image(systemName: "chevron.right")
+                .foregroundColor(.secondary)
+            }
+          }
+        }
+        
         Section("History") {
           if translationService.translationHistory.isEmpty {
             Text("No translations yet")
@@ -59,32 +78,60 @@ struct SettingsView: View {
                   Text(result.sourceLanguage.flag)
                   Text(result.originalText)
                     .font(.caption)
+                    .lineLimit(1)
                 }
                 HStack {
                   Text(result.targetLanguage.flag)
                   Text(result.translatedText)
                     .font(.caption)
                     .foregroundColor(.green)
+                    .lineLimit(1)
                 }
               }
+              .padding(.vertical, 2)
             }
             
             Button("Clear History") {
               translationService.clearHistory()
+              HapticService.shared.notification(type: .success)
             }
             .foregroundColor(.red)
+          }
+        }
+        
+        Section("About") {
+          HStack {
+            Text("Version")
+            Spacer()
+            Text("1.0")
+              .foregroundColor(.secondary)
+          }
+          
+          HStack {
+            Text("Translation Engine")
+            Spacer()
+            Text("Enhanced Dictionary")
+              .foregroundColor(.secondary)
+          }
+          
+          HStack {
+            Text("Supported Languages")
+            Spacer()
+            Text("\(TranslationModel.Language.allCases.count)")
+              .foregroundColor(.secondary)
           }
         }
       }
       .navigationTitle("Settings")
       .navigationBarItems(trailing: Button("Done") { dismiss() })
     }
+    .sheet(isPresented: $showLanguageInfo) {
+      LanguageDownloadView()
+    }
   }
   
   private func switchLanguages() {
-    let temp = translationService.sourceLanguage
-    translationService.sourceLanguage = translationService.targetLanguage
-    translationService.targetLanguage = temp
+    translationService.switchLanguages()
     HapticService.shared.impact(style: .light)
   }
 }

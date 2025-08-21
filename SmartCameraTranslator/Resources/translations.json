@@ -1,0 +1,690 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "languages": ["en", "az", "ru", "de"],
+    "lastUpdated": "2025-08-20",
+    "totalEntries": 150
+  },
+  "translations": {
+    "hello": {
+      "en": "Hello",
+      "az": "Salam",
+      "ru": "Привет",
+      "de": "Hallo"
+    },
+    "welcome": {
+      "en": "Welcome",
+      "az": "Xoş gəlmisiniz",
+      "ru": "Добро пожаловать",
+      "de": "Willkommen"
+    },
+    "settings": {
+      "en": "Settings",
+      "az": "Tənzimləmələr",
+      "ru": "Настройки",
+      "de": "Einstellungen"
+    },
+    "camera": {
+      "en": "Camera",
+      "az": "Kamera",
+      "ru": "Камера",
+      "de": "Kamera"
+    },
+    "text": {
+      "en": "Text",
+      "az": "Mətn",
+      "ru": "Текст",
+      "de": "Text"
+    },
+    "translation": {
+      "en": "Translation",
+      "az": "Tərcümə",
+      "ru": "Перевод",
+      "de": "Übersetzung"
+    },
+    "language": {
+      "en": "Language",
+      "az": "Dil",
+      "ru": "Язык",
+      "de": "Sprache"
+    },
+    "done": {
+      "en": "Done",
+      "az": "Hazır",
+      "ru": "Готово",
+      "de": "Fertig"
+    },
+    "cancel": {
+      "en": "Cancel",
+      "az": "Ləğv et",
+      "ru": "Отмена",
+      "de": "Abbrechen"
+    },
+    "save": {
+      "en": "Save",
+      "az": "Saxla",
+      "ru": "Сохранить",
+      "de": "Speichern"
+    },
+    "delete": {
+      "en": "Delete",
+      "az": "Sil",
+      "ru": "Удалить",
+      "de": "Löschen"
+    },
+    "edit": {
+      "en": "Edit",
+      "az": "Redaktə",
+      "ru": "Редактировать",
+      "de": "Bearbeiten"
+    },
+    "share": {
+      "en": "Share",
+      "az": "Paylaş",
+      "ru": "Поделиться",
+      "de": "Teilen"
+    },
+    "open": {
+      "en": "Open",
+      "az": "Aç",
+      "ru": "Открыть",
+      "de": "Öffnen"
+    },
+    "close": {
+      "en": "Close",
+      "az": "Bağla",
+      "ru": "Закрыть",
+      "de": "Schließen"
+    },
+    "search": {
+      "en": "Search",
+      "az": "Axtar",
+      "ru": "Поиск",
+      "de": "Suchen"
+    },
+    "history": {
+      "en": "History",
+      "az": "Tarixçə",
+      "ru": "История",
+      "de": "Verlauf"
+    },
+    "about": {
+      "en": "About",
+      "az": "Haqqında",
+      "ru": "О программе",
+      "de": "Über"
+    },
+    "version": {
+      "en": "Version",
+      "az": "Versiya",
+      "ru": "Версия",
+      "de": "Version"
+    },
+    "good": {
+      "en": "Good",
+      "az": "Yaxşı",
+      "ru": "Хорошо",
+      "de": "Gut"
+    },
+    "bad": {
+      "en": "Bad",
+      "az": "Pis",
+      "ru": "Плохо",
+      "de": "Schlecht"
+    },
+    "great": {
+      "en": "Great",
+      "az": "Əla",
+      "ru": "Отлично",
+      "de": "Großartig"
+    },
+    "nice": {
+      "en": "Nice",
+      "az": "Gözəl",
+      "ru": "Хорошо",
+      "de": "Schön"
+    },
+    "beautiful": {
+      "en": "Beautiful",
+      "az": "Gözəl",
+      "ru": "Красивый",
+      "de": "Schön"
+    },
+    "morning": {
+      "en": "Morning",
+      "az": "Səhər",
+      "ru": "Утро",
+      "de": "Morgen"
+    },
+    "evening": {
+      "en": "Evening",
+      "az": "Axşam",
+      "ru": "Вечер",
+      "de": "Abend"
+    },
+    "night": {
+      "en": "Night",
+      "az": "Gecə",
+      "ru": "Ночь",
+      "de": "Nacht"
+    },
+    "day": {
+      "en": "Day",
+      "az": "Gün",
+      "ru": "День",
+      "de": "Tag"
+    },
+    "time": {
+      "en": "Time",
+      "az": "Vaxt",
+      "ru": "Время",
+      "de": "Zeit"
+    },
+    "today": {
+      "en": "Today",
+      "az": "Bu gün",
+      "ru": "Сегодня",
+      "de": "Heute"
+    },
+    "tomorrow": {
+      "en": "Tomorrow",
+      "az": "Sabah",
+      "ru": "Завтра",
+      "de": "Morgen"
+    },
+    "yesterday": {
+      "en": "Yesterday",
+      "az": "Dünən",
+      "ru": "Вчера",
+      "de": "Gestern"
+    },
+    "thank": {
+      "en": "Thank",
+      "az": "Təşəkkür",
+      "ru": "Спасибо",
+      "de": "Danke"
+    },
+    "you": {
+      "en": "You",
+      "az": "Sən",
+      "ru": "Ты",
+      "de": "Du"
+    },
+    "please": {
+      "en": "Please",
+      "az": "Zəhmət olmasa",
+      "ru": "Пожалуйста",
+      "de": "Bitte"
+    },
+    "sorry": {
+      "en": "Sorry",
+      "az": "Bağışlayın",
+      "ru": "Извините",
+      "de": "Entschuldigung"
+    },
+    "excuse": {
+      "en": "Excuse",
+      "az": "Bağışlayın",
+      "ru": "Извините",
+      "de": "Entschuldigung"
+    },
+    "yes": {
+      "en": "Yes",
+      "az": "Bəli",
+      "ru": "Да",
+      "de": "Ja"
+    },
+    "no": {
+      "en": "No",
+      "az": "Xeyr",
+      "ru": "Нет",
+      "de": "Nein"
+    },
+    "maybe": {
+      "en": "Maybe",
+      "az": "Bəlkə",
+      "ru": "Может быть",
+      "de": "Vielleicht"
+    },
+    "one": {
+      "en": "One",
+      "az": "Bir",
+      "ru": "Один",
+      "de": "Eins"
+    },
+    "two": {
+      "en": "Two",
+      "az": "İki",
+      "ru": "Два",
+      "de": "Zwei"
+    },
+    "three": {
+      "en": "Three",
+      "az": "Üç",
+      "ru": "Три",
+      "de": "Drei"
+    },
+    "four": {
+      "en": "Four",
+      "az": "Dörd",
+      "ru": "Четыре",
+      "de": "Vier"
+    },
+    "five": {
+      "en": "Five",
+      "az": "Beş",
+      "ru": "Пять",
+      "de": "Fünf"
+    },
+    "six": {
+      "en": "Six",
+      "az": "Altı",
+      "ru": "Шесть",
+      "de": "Sechs"
+    },
+    "seven": {
+      "en": "Seven",
+      "az": "Yeddi",
+      "ru": "Семь",
+      "de": "Sieben"
+    },
+    "eight": {
+      "en": "Eight",
+      "az": "Səkkiz",
+      "ru": "Восемь",
+      "de": "Acht"
+    },
+    "nine": {
+      "en": "Nine",
+      "az": "Doqquz",
+      "ru": "Девять",
+      "de": "Neun"
+    },
+    "ten": {
+      "en": "Ten",
+      "az": "On",
+      "ru": "Десять",
+      "de": "Zehn"
+    },
+    "red": {
+      "en": "Red",
+      "az": "Qırmızı",
+      "ru": "Красный",
+      "de": "Rot"
+    },
+    "blue": {
+      "en": "Blue",
+      "az": "Mavi",
+      "ru": "Синий",
+      "de": "Blau"
+    },
+    "green": {
+      "en": "Green",
+      "az": "Yaşıl",
+      "ru": "Зеленый",
+      "de": "Grün"
+    },
+    "yellow": {
+      "en": "Yellow",
+      "az": "Sarı",
+      "ru": "Желтый",
+      "de": "Gelb"
+    },
+    "black": {
+      "en": "Black",
+      "az": "Qara",
+      "ru": "Черный",
+      "de": "Schwarz"
+    },
+    "white": {
+      "en": "White",
+      "az": "Ağ",
+      "ru": "Белый",
+      "de": "Weiß"
+    },
+    "water": {
+      "en": "Water",
+      "az": "Su",
+      "ru": "Вода",
+      "de": "Wasser"
+    },
+    "food": {
+      "en": "Food",
+      "az": "Yemək",
+      "ru": "Еда",
+      "de": "Essen"
+    },
+    "house": {
+      "en": "House",
+      "az": "Ev",
+      "ru": "Дом",
+      "de": "Haus"
+    },
+    "car": {
+      "en": "Car",
+      "az": "Maşın",
+      "ru": "Машина",
+      "de": "Auto"
+    },
+    "street": {
+      "en": "Street",
+      "az": "Küçə",
+      "ru": "Улица",
+      "de": "Straße"
+    },
+    "city": {
+      "en": "City",
+      "az": "Şəhər",
+      "ru": "Город",
+      "de": "Stadt"
+    },
+    "country": {
+      "en": "Country",
+      "az": "Ölkə",
+      "ru": "Страна",
+      "de": "Land"
+    },
+    "world": {
+      "en": "World",
+      "az": "Dünya",
+      "ru": "Мир",
+      "de": "Welt"
+    },
+    "phone": {
+      "en": "Phone",
+      "az": "Telefon",
+      "ru": "Телефон",
+      "de": "Telefon"
+    },
+    "computer": {
+      "en": "Computer",
+      "az": "Kompüter",
+      "ru": "Компьютер",
+      "de": "Computer"
+    },
+    "internet": {
+      "en": "Internet",
+      "az": "İnternet",
+      "ru": "Интернет",
+      "de": "Internet"
+    },
+    "email": {
+      "en": "Email",
+      "az": "E-poçt",
+      "ru": "Электронная почта",
+      "de": "E-Mail"
+    },
+    "password": {
+      "en": "Password",
+      "az": "Parol",
+      "ru": "Пароль",
+      "de": "Passwort"
+    },
+    "login": {
+      "en": "Login",
+      "az": "Giriş",
+      "ru": "Вход",
+      "de": "Anmelden"
+    },
+    "logout": {
+      "en": "Logout",
+      "az": "Çıxış",
+      "ru": "Выход",
+      "de": "Abmelden"
+    },
+    "money": {
+      "en": "Money",
+      "az": "Pul",
+      "ru": "Деньги",
+      "de": "Geld"
+    },
+    "price": {
+      "en": "Price",
+      "az": "Qiymət",
+      "ru": "Цена",
+      "de": "Preis"
+    },
+    "expensive": {
+      "en": "Expensive",
+      "az": "Bahalı",
+      "ru": "Дорого",
+      "de": "Teuer"
+    },
+    "cheap": {
+      "en": "Cheap",
+      "az": "Ucuz",
+      "ru": "Дешево",
+      "de": "Billig"
+    },
+    "free": {
+      "en": "Free",
+      "az": "Pulsuz",
+      "ru": "Бесплатно",
+      "de": "Kostenlos"
+    },
+    "work": {
+      "en": "Work",
+      "az": "İş",
+      "ru": "Работа",
+      "de": "Arbeit"
+    },
+    "school": {
+      "en": "School",
+      "az": "Məktəb",
+      "ru": "Школа",
+      "de": "Schule"
+    },
+    "university": {
+      "en": "University",
+      "az": "Universitet",
+      "ru": "Университет",
+      "de": "Universität"
+    },
+    "student": {
+      "en": "Student",
+      "az": "Tələbə",
+      "ru": "Студент",
+      "de": "Student"
+    },
+    "teacher": {
+      "en": "Teacher",
+      "az": "Müəllim",
+      "ru": "Учитель",
+      "de": "Lehrer"
+    },
+    "book": {
+      "en": "Book",
+      "az": "Kitab",
+      "ru": "Книга",
+      "de": "Buch"
+    },
+    "read": {
+      "en": "Read",
+      "az": "Oxu",
+      "ru": "Читать",
+      "de": "Lesen"
+    },
+    "write": {
+      "en": "Write",
+      "az": "Yaz",
+      "ru": "Писать",
+      "de": "Schreiben"
+    },
+    "learn": {
+      "en": "Learn",
+      "az": "Öyrən",
+      "ru": "Учить",
+      "de": "Lernen"
+    },
+    "understand": {
+      "en": "Understand",
+      "az": "Başa düş",
+      "ru": "Понимать",
+      "de": "Verstehen"
+    },
+    "speak": {
+      "en": "Speak",
+      "az": "Danış",
+      "ru": "Говорить",
+      "de": "Sprechen"
+    },
+    "listen": {
+      "en": "Listen",
+      "az": "Dinlə",
+      "ru": "Слушать",
+      "de": "Hören"
+    },
+    "see": {
+      "en": "See",
+      "az": "Gör",
+      "ru": "Видеть",
+      "de": "Sehen"
+    },
+    "look": {
+      "en": "Look",
+      "az": "Bax",
+      "ru": "Смотреть",
+      "de": "Schauen"
+    },
+    "family": {
+      "en": "Family",
+      "az": "Ailə",
+      "ru": "Семья",
+      "de": "Familie"
+    },
+    "friend": {
+      "en": "Friend",
+      "az": "Dost",
+      "ru": "Друг",
+      "de": "Freund"
+    },
+    "love": {
+      "en": "Love",
+      "az": "Sevgi",
+      "ru": "Любовь",
+      "de": "Liebe"
+    },
+    "help": {
+      "en": "Help",
+      "az": "Kömək",
+      "ru": "Помощь",
+      "de": "Hilfe"
+    },
+    "problem": {
+      "en": "Problem",
+      "az": "Problem",
+      "ru": "Проблема",
+      "de": "Problem"
+    },
+    "solution": {
+      "en": "Solution",
+      "az": "Həll",
+      "ru": "Решение",
+      "de": "Lösung"
+    },
+    "question": {
+      "en": "Question",
+      "az": "Sual",
+      "ru": "Вопрос",
+      "de": "Frage"
+    },
+    "answer": {
+      "en": "Answer",
+      "az": "Cavab",
+      "ru": "Ответ",
+      "de": "Antwort"
+    },
+    "important": {
+      "en": "Important",
+      "az": "Vacib",
+      "ru": "Важный",
+      "de": "Wichtig"
+    },
+    "necessary": {
+      "en": "Necessary",
+      "az": "Lazım",
+      "ru": "Необходимый",
+      "de": "Notwendig"
+    }
+  },
+  "phrases": {
+    "good_morning": {
+      "en": "Good morning",
+      "az": "Sabahınız xeyir",
+      "ru": "Доброе утро",
+      "de": "Guten Morgen"
+    },
+    "good_evening": {
+      "en": "Good evening",
+      "az": "Axşamınız xeyir",
+      "ru": "Добрый вечер",
+      "de": "Guten Abend"
+    },
+    "good_night": {
+      "en": "Good night",
+      "az": "Gecəniz xeyir",
+      "ru": "Спокойной ночи",
+      "de": "Gute Nacht"
+    },
+    "thank_you": {
+      "en": "Thank you",
+      "az": "Təşəkkür edirəm",
+      "ru": "Спасибо",
+      "de": "Danke schön"
+    },
+    "you_are_welcome": {
+      "en": "You're welcome",
+      "az": "Xahiş edirəm",
+      "ru": "Пожалуйста",
+      "de": "Gern geschehen"
+    },
+    "how_are_you": {
+      "en": "How are you?",
+      "az": "Necəsən?",
+      "ru": "Как дела?",
+      "de": "Wie geht es dir?"
+    },
+    "i_am_fine": {
+      "en": "I am fine",
+      "az": "Yaxşıyam",
+      "ru": "У меня все хорошо",
+      "de": "Mir geht es gut"
+    },
+    "excuse_me": {
+      "en": "Excuse me",
+      "az": "Bağışlayın",
+      "ru": "Извините",
+      "de": "Entschuldigen Sie"
+    },
+    "i_dont_understand": {
+      "en": "I don't understand",
+      "az": "Başa düşmürəm",
+      "ru": "Я не понимаю",
+      "de": "Ich verstehe nicht"
+    },
+    "do_you_speak_english": {
+      "en": "Do you speak English?",
+      "az": "Siz ingilis dili danışırsınız?",
+      "ru": "Вы говорите по-английски?",
+      "de": "Sprechen Sie Englisch?"
+    },
+    "where_is": {
+      "en": "Where is?",
+      "az": "Harada?",
+      "ru": "Где находится?",
+      "de": "Wo ist?"
+    },
+    "how_much": {
+      "en": "How much?",
+      "az": "Nə qədər?",
+      "ru": "Сколько?",
+      "de": "Wie viel?"
+    },
+    "can_you_help_me": {
+      "en": "Can you help me?",
+      "az": "Mənə kömək edə bilərsiniz?",
+      "ru": "Можете ли вы мне помочь?",
+      "de": "Können Sie mir helfen?"
+    }
+  }
+}

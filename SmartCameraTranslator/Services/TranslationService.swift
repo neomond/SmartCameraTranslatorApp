@@ -1,5 +1,5 @@
 //
-//  TranslationService.swift
+//  JSONTranslationService.swift
 //  SmartCameraTranslator
 //
 //  Created by Nazrin Atayeva on 17.08.25.
@@ -10,79 +10,120 @@ import NaturalLanguage
 import Combine
 
 struct TranslationModel {
-  enum Language: String, CaseIterable {
-    case english = "en"
-    case azerbaijani = "az"
-    case russian = "ru"
-    case turkish = "tr"
-    case spanish = "es"
-    case french = "fr"
-    
-    var displayName: String {
-      switch self {
-      case .english: return "English"
-      case .azerbaijani: return "Azerbaijani"
-      case .russian: return "Russian"
-      case .turkish: return "Turkish"
-      case .spanish: return "Spanish"
-      case .french: return "French"
-      }
+    enum Language: String, CaseIterable {
+        case english = "en"
+        case azerbaijani = "az"
+        case russian = "ru"
+        case german = "de"
+        
+        var displayName: String {
+            switch self {
+            case .english: return "English"
+            case .azerbaijani: return "Azerbaijani"
+            case .russian: return "Russian"
+            case .german: return "German"
+            }
+        }
+        
+        var flag: String {
+            switch self {
+            case .english: return "🇬🇧"
+            case .azerbaijani: return "🇦🇿"
+            case .russian: return "🇷🇺"
+            case .german: return "🇩🇪"
+            }
+        }
     }
     
-    var flag: String {
-      switch self {
-      case .english: return "🇬🇧"
-      case .azerbaijani: return "🇦🇿"
-      case .russian: return "🇷🇺"
-      case .turkish: return "🇹🇷"
-      case .spanish: return "🇪🇸"
-      case .french: return "🇫🇷"
-      }
+    struct TranslationResult {
+        let originalText: String
+        let translatedText: String
+        let sourceLanguage: Language
+        let targetLanguage: Language
+        let confidence: Float
+        let timestamp: Date
     }
-  }
-  
-  struct TranslationResult {
-    let originalText: String
-    let translatedText: String
-    let sourceLanguage: Language
-    let targetLanguage: Language
-    let confidence: Float
-    let timestamp: Date
-  }
 }
 
-// Separate cache class to avoid struct mutation issues
+// MARK: - Translation Dictionary Models
+struct TranslationDictionary: Codable {
+    let metadata: TranslationMetadata
+    let translations: [String: [String: String]]
+    let phrases: [String: [String: String]]
+}
+
+struct TranslationMetadata: Codable {
+    let version: String
+    let languages: [String]
+    let lastUpdated: String
+    let totalEntries: Int
+}
+
+// MARK: - Translation Cache
 @MainActor
 class TranslationCache {
-  private var cache: [String: TranslationModel.TranslationResult] = [:]
-  
-  func set(_ result: TranslationModel.TranslationResult, for key: String) {
-    cache[key] = result
-  }
-  
-  func get(for key: String) -> TranslationModel.TranslationResult? {
-    cache[key]
-  }
-  
-  func clear() {
-    cache.removeAll()
-  }
+    private var cache: [String: TranslationModel.TranslationResult] = [:]
+    
+    func set(_ result: TranslationModel.TranslationResult, for key: String) {
+        cache[key] = result
+    }
+    
+    func get(for key: String) -> TranslationModel.TranslationResult? {
+        cache[key]
+    }
+    
+    func clear() {
+        cache.removeAll()
+    }
 }
 
+// MARK: - Main Translation Service
 @MainActor
-class TranslationService: ObservableObject {
+class JSONTranslationService: ObservableObject {
     @Published var sourceLanguage: TranslationModel.Language = .english
     @Published var targetLanguage: TranslationModel.Language = .azerbaijani
     @Published var isTranslating = false
     @Published var translationHistory: [TranslationModel.TranslationResult] = []
     @Published var error: String?
-    @Published var supportsTranslation = true // Always true for enhanced dictionary
+    @Published var supportsTranslation = true
+    @Published var dictionaryStatus: DictionaryStatus = .loading
     
     private var cache = TranslationCache()
+    private var translationDictionary: TranslationDictionary?
+    
+    enum DictionaryStatus {
+        case loading
+        case ready
+        case error(String)
+        
+        var displayText: String {
+            switch self {
+            case .loading: return "Loading dictionary..."
+            case .ready: return "Dictionary ready"
+            case .error(let message): return "Error: \(message)"
+            }
+        }
+    }
     
     init() {
-        // Enhanced dictionary approach - always available
-        supportsTranslation = true
+        loadTranslationDictionary()
+    }
+    
+    private func loadTranslationDictionary() {
+        guard let url = Bundle.main.url(forResource: "translations", withExtension: "json") else {
+            dictionaryStatus = .error("translations.json not found in bundle")
+            return
+        }
+        
+        do {
+            let data = try Data(contentsOf: url)
+            translationDictionary = try JSONDecoder().decode(TranslationDictionary.self, from: data)
+            dictionaryStatus = .ready
+            print("📚 Dictionary loaded: \(translationDictionary?.metadata.totalEntries ?? 0) entries")
+        } catch {
+            dictionaryStatus = .error("Failed to parse translations.json: \(error.localizedDescription)")
+            print("❌ Failed to load translation dictionary: \(error)")
+        }
     }
     
     func translate(_ text: String, from source: TranslationModel.Language? = nil, to target: TranslationModel.Language? = nil) async -> String {
@@ -105,7 +146,7 @@ class TranslationService: ObservableObject {
         error = nil
         
         // Add realistic delay for better UX
-        try? await Task.sleep(nanoseconds: 800_000_000) // 0.8 seconds
+        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
         
         let translatedText = performTranslation(text, from: sourceL, to: targetL)
         
@@ -115,7 +156,7 @@ class TranslationService: ObservableObject {
             translatedText: translatedText,
             sourceLanguage: sourceL,
             targetLanguage: targetL,
-            confidence: 0.95,
+            confidence: getTranslationConfidence(for: translatedText, original: text),
             timestamp: Date()
         )
         
@@ -131,6 +172,70 @@ class TranslationService: ObservableObject {
         return translatedText
     }
     
+    private func performTranslation(_ text: String, from source: TranslationModel.Language, to target: TranslationModel.Language) -> String {
+        guard let dictionary = translationDictionary else {
+            return "Dictionary not loaded"
+        }
+        
+        // Try exact phrase match first
+        let phraseKey = text.lowercased().replacingOccurrences(of: " ", with: "_")
+        if let phraseTranslations = dictionary.phrases[phraseKey],
+           let translation = phraseTranslations[target.rawValue] {
+            return translation
+        }
+        
+        // Try exact word match
+        let wordKey = text.lowercased()
+        if let wordTranslations = dictionary.translations[wordKey],
+           let translation = wordTranslations[target.rawValue] {
+            return translation
+        }
+        
+        // Try case-insensitive search
+        for (key, translations) in dictionary.translations {
+            if key.lowercased() == text.lowercased(),
+               let translation = translations[target.rawValue] {
+                return translation
+            }
+        }
+        
+        // Try word-by-word translation
+        let words = text.components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+        
+        if words.count > 1 {
+            var translatedWords: [String] = []
+            
+            for word in words {
+                let cleanWord = word.trimmingCharacters(in: .punctuationCharacters).lowercased()
+                
+                if let wordTranslations = dictionary.translations[cleanWord],
+                   let translation = wordTranslations[target.rawValue] {
+                    translatedWords.append(translation)
+                } else {
+                    // Keep original word if no translation found
+                    translatedWords.append(word)
+                }
+            }
+            
+            let result = translatedWords.joined(separator: " ")
+            return result != text ? result : "[\(text)]"
+        }
+        
+        // No translation found
+        return "[\(text)]"
+    }
+    
+    private func getTranslationConfidence(for translation: String, original: String) -> Float {
+        if translation.hasPrefix("[") && translation.hasSuffix("]") {
+            return 0.0 // No translation found
+        } else if translation.contains(original) {
+            return 0.5 // Partial translation
+        } else {
+            return 0.9 // Full translation
+        }
+    }
+    
     // Auto-detect language using NaturalLanguage framework
     func detectLanguage(for text: String) -> TranslationModel.Language {
         let recognizer = NLLanguageRecognizer()
@@ -144,216 +249,73 @@ class TranslationService: ObservableObject {
         case "en": return .english
         case "az": return .azerbaijani
         case "ru": return .russian
-        case "tr": return .turkish
-        case "es": return .spanish
-        case "fr": return .french
+        case "de": return .german
         default: return .english
         }
     }
     
-    // Enhanced translation with comprehensive dictionary
-    private func performTranslation(_ text: String, from source: TranslationModel.Language, to target: TranslationModel.Language) -> String {
-        let translations: [String: [String: [String: String]]] = [
-            "en": [
-                "az": [
-                    // UI/App terms
-                    "Hello": "Salam",
-                    "Welcome": "Xoş gəlmisiniz",
-                    "Settings": "Tənzimləmələr",
-                    "Camera": "Kamera",
-                    "Text": "Mətn",
-                    "Done": "Hazır",
-                    "Cancel": "Ləğv et",
-                    "Save": "Saxla",
-                    "Delete": "Sil",
-                    "Edit": "Redaktə",
-                    "Share": "Paylaş",
-                    "Open": "Aç",
-                    "Close": "Bağla",
-                    "Search": "Axtar",
-                    "Translation": "Tərcümə",
-                    "Language": "Dil",
-                    "History": "Tarixçə",
-                    "About": "Haqqında",
-                    "Version": "Versiya",
-                    "Improved": "Təkmil",
-                    "sizing": "ölçü",
-                    "and": "və",
-                    "line": "xətt",
-                    "limits": "məhdudiyyətlər",
-                    
-                    // Common words
-                    "Good": "Yaxşı",
-                    "Bad": "Pis",
-                    "Great": "Əla",
-                    "Nice": "Gözəl",
-                    "Beautiful": "Gözəl",
-                    "morning": "səhər",
-                    "evening": "axşam",
-                    "night": "gecə",
-                    "day": "gün",
-                    "time": "vaxt",
-                    "today": "bu gün",
-                    "tomorrow": "sabah",
-                    "yesterday": "dünən",
-                    
-                    // Polite expressions
-                    "Thank": "Təşəkkür",
-                    "you": "sən",
-                    "Please": "Zəhmət olmasa",
-                    "Sorry": "Bağışlayın",
-                    "Excuse": "Bağışlayın",
-                    "Yes": "Bəli",
-                    "No": "Xeyr",
-                    "Maybe": "Bəlkə",
-                    
-                    // Numbers
-                    "One": "Bir",
-                    "Two": "İki",
-                    "Three": "Üç",
-                    "Four": "Dörd",
-                    "Five": "Beş",
-                    "Six": "Altı",
-                    "Seven": "Yeddi",
-                    "Eight": "Səkkiz",
-                    "Nine": "Doqquz",
-                    "Ten": "On",
-                    
-                    // Colors
-                    "Red": "Qırmızı",
-                    "Blue": "Mavi",
-                    "Green": "Yaşıl",
-                    "Yellow": "Sarı",
-                    "Black": "Qara",
-                    "White": "Ağ",
-                    
-                    // Common phrases
-                    "How are you": "Necəsən",
-                    "Good morning": "Sabahınız xeyir",
-                    "Good evening": "Axşamınız xeyir",
-                    "Good night": "Gecəniz xeyir",
-                    "Thank you": "Təşəkkür edirəm",
-                    "You're welcome": "Xahiş edirəm",
-                    "Improved text sizing and line limits": "Təkmil mətn ölçüsü və xətt məhdudiyyətləri"
-                ],
-                "ru": [
-                    "Hello": "Привет",
-                    "Welcome": "Добро пожаловать",
-                    "Settings": "Настройки",
-                    "Camera": "Камера",
-                    "Text": "Текст",
-                    "Done": "Готово",
-                    "Translation": "Перевод",
-                    "Language": "Язык",
-                    "Yes": "Да",
-                    "No": "Нет",
-                    "Thank you": "Спасибо",
-                    "Please": "Пожалуйста",
-                    "Improved": "Улучшенный",
-                    "sizing": "размер",
-                    "and": "и",
-                    "line": "строка",
-                    "limits": "ограничения"
-                ],
-                "tr": [
-                    "Hello": "Merhaba",
-                    "Welcome": "Hoş geldiniz",
-                    "Settings": "Ayarlar",
-                    "Camera": "Kamera",
-                    "Text": "Metin",
-                    "Done": "Tamam",
-                    "Translation": "Çeviri",
-                    "Language": "Dil",
-                    "Yes": "Evet",
-                    "No": "Hayır",
-                    "Thank you": "Teşekkür ederim",
-                    "Please": "Lütfen",
-                    "Improved": "Geliştirilmiş",
-                    "sizing": "boyutlandırma",
-                    "and": "ve",
-                    "line": "satır",
-                    "limits": "sınırlar"
-                ],
-                "es": [
-                    "Hello": "Hola",
-                    "Welcome": "Bienvenido",
-                    "Settings": "Configuración",
-                    "Camera": "Cámara",
-                    "Text": "Texto",
-                    "Done": "Hecho",
-                    "Translation": "Traducción",
-                    "Language": "Idioma",
-                    "Yes": "Sí",
-                    "No": "No",
-                    "Thank you": "Gracias",
-                    "Please": "Por favor",
-                    "Improved": "Mejorado",
-                    "sizing": "tamaño",
-                    "and": "y",
-                    "line": "línea",
-                    "limits": "límites"
-                ],
-                "fr": [
-                    "Hello": "Bonjour",
-                    "Welcome": "Bienvenue",
-                    "Settings": "Paramètres",
-                    "Camera": "Caméra",
-                    "Text": "Texte",
-                    "Done": "Terminé",
-                    "Translation": "Traduction",
-                    "Language": "Langue",
-                    "Yes": "Oui",
-                    "No": "Non",
-                    "Thank you": "Merci",
-                    "Please": "S'il vous plaît",
-                    "Improved": "Amélioré",
-                    "sizing": "dimensionnement",
-                    "and": "et",
-                    "line": "ligne",
-                    "limits": "limites"
-                ]
-            ]
-        ]
+    // Check if translation exists in dictionary
+    func hasTranslation(for text: String, from source: TranslationModel.Language, to target: TranslationModel.Language) -> Bool {
+        guard let dictionary = translationDictionary else { return false }
         
-        // Try exact phrase match first
-        if let sourceDict = translations[source.rawValue],
-           let targetDict = sourceDict[target.rawValue],
-           let translation = targetDict[text] {
-            return translation
+        let wordKey = text.lowercased()
+        let phraseKey = text.lowercased().replacingOccurrences(of: " ", with: "_")
+        
+        // Check phrases first
+        if let phraseTranslations = dictionary.phrases[phraseKey],
+           phraseTranslations[target.rawValue] != nil {
+            return true
         }
         
-        // Try case-insensitive match
-        if let sourceDict = translations[source.rawValue],
-           let targetDict = sourceDict[target.rawValue] {
-            for (key, value) in targetDict {
-                if key.lowercased() == text.lowercased() {
-                    return value
+        // Check individual words
+        if let wordTranslations = dictionary.translations[wordKey],
+           wordTranslations[target.rawValue] != nil {
+            return true
+        }
+        
+        return false
+    }
+    
+    // Get dictionary statistics
+    func getDictionaryStats() -> (words: Int, phrases: Int, languages: [String]) {
+        guard let dictionary = translationDictionary else {
+            return (0, 0, [])
+        }
+        
+        return (
+            words: dictionary.translations.count,
+            phrases: dictionary.phrases.count,
+            languages: dictionary.metadata.languages
+        )
+    }
+    
+    // Search dictionary for similar words
+    func searchSimilarWords(for text: String, in language: TranslationModel.Language) -> [String] {
+        guard let dictionary = translationDictionary else { return [] }
+        
+        let searchTerm = text.lowercased()
+        var results: [String] = []
+        
+        // Search in translations
+        for (key, translations) in dictionary.translations {
+            if key.contains(searchTerm) || searchTerm.contains(key) {
+                if let translation = translations[language.rawValue] {
+                    results.append("\(key) → \(translation)")
                 }
             }
         }
         
-        // Try word-by-word translation
-        let words = text.components(separatedBy: " ")
-        var translatedWords: [String] = []
-        
-        if let sourceDict = translations[source.rawValue],
-           let targetDict = sourceDict[target.rawValue] {
-            for word in words {
-                // Clean the word (remove punctuation)
-                let cleanWord = word.trimmingCharacters(in: .punctuationCharacters)
-                
-                if let translatedWord = targetDict[cleanWord] {
-                    translatedWords.append(translatedWord)
-                } else if let translatedWord = targetDict.first(where: { $0.key.lowercased() == cleanWord.lowercased() })?.value {
-                    translatedWords.append(translatedWord)
-                } else {
-                    translatedWords.append(word) // Keep original if not found
+        // Search in phrases
+        for (key, translations) in dictionary.phrases {
+            let readableKey = key.replacingOccurrences(of: "_", with: " ")
+            if readableKey.contains(searchTerm) || searchTerm.contains(readableKey) {
+                if let translation = translations[language.rawValue] {
+                    results.append("\(readableKey) → \(translation)")
                 }
             }
         }
         
-        let result = translatedWords.joined(separator: " ")
-        return result != text ? result : "[\(text)]" // Brackets indicate no translation available
+        return Array(results.prefix(10)) // Limit to 10 results
     }
     
     func clearHistory() {
@@ -365,5 +327,11 @@ class TranslationService: ObservableObject {
         let temp = sourceLanguage
         sourceLanguage = targetLanguage
         targetLanguage = temp
+    }
+    
+    // Reload dictionary (useful for updates)
+    func reloadDictionary() {
+        dictionaryStatus = .loading
+        loadTranslationDictionary()
     }
 }

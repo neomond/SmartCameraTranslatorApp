@@ -10,7 +10,7 @@ import Combine
 
 @MainActor
 class TranslationViewModel: ObservableObject {
-    @Published var translationService = TranslationService()
+    @Published var translationService = JSONTranslationService()
     @Published var currentTranslation: String = ""
     @Published var isProcessing = false
     

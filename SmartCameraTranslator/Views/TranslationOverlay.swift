@@ -10,7 +10,7 @@ import SwiftUI
 struct TranslationOverlay: View {
     let detectedTexts: [DetectedText]
     let geometrySize: CGSize
-    @StateObject private var translationService = TranslationService()
+    let translationService: JSONTranslationService 
     @State private var selectedText: DetectedText?
     @State private var currentTranslation: String = ""
     @State private var isTranslating = false
@@ -124,7 +124,7 @@ struct TranslationOverlay: View {
     }
 }
 
-// Enhanced bubble with language indicators
+// Enhanced bubble with language indicators and speech
 struct TranslationBubble: View {
     let original: String
     let translated: String
@@ -133,16 +133,32 @@ struct TranslationBubble: View {
     let position: CGPoint
     let isLoading: Bool
     
+    @StateObject private var speechService = SpeechService.shared
+    
     var body: some View {
         VStack(spacing: 8) {
-            // Original text with language
+            // Original text with language and speech button
             HStack(spacing: 6) {
                 Text(sourceLanguage.flag)
                     .font(.caption)
+                
                 Text(original)
                     .font(.system(size: 13, weight: .medium))
                     .foregroundColor(.white)
                     .lineLimit(2)
+                
+                Spacer()
+                
+                Button(action: {
+                    speechService.speakOriginal(original, language: sourceLanguage)
+                }) {
+                    Image(systemName: speechService.isSpeaking ? "speaker.wave.2.fill" : "speaker.2")
+                        .font(.caption)
+                        .foregroundColor(.white)
+                        .padding(4)
+                        .background(Circle().fill(Color.white.opacity(0.2)))
+                }
+                .disabled(isLoading)
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
@@ -154,7 +170,7 @@ struct TranslationBubble: View {
                 .font(.caption2)
                 .foregroundColor(.gray)
             
-            // Translated text with language
+            // Translated text with language and speech button
             HStack(spacing: 6) {
                 Text(targetLanguage.flag)
                     .font(.caption)
@@ -168,6 +184,19 @@ struct TranslationBubble: View {
                         .font(.system(size: 13, weight: .medium))
                         .foregroundColor(.white)
                         .lineLimit(2)
+                    
+                    Spacer()
+                    
+                    Button(action: {
+                        speechService.speakTranslation(translated, language: targetLanguage)
+                    }) {
+                        Image(systemName: speechService.isSpeaking ? "speaker.wave.2.fill" : "speaker.2")
+                            .font(.caption)
+                            .foregroundColor(.white)
+                            .padding(4)
+                            .background(Circle().fill(Color.white.opacity(0.2)))
+                    }
+                    .disabled(translated.hasPrefix("[") && translated.hasSuffix("]")) // Disable for untranslated text
                 }
             }
             .padding(.horizontal, 12)
@@ -210,7 +239,8 @@ struct TranslationBubble: View {
                     confidence: 0.92
                 )
             ],
-            geometrySize: CGSize(width: 390, height: 844)
+            geometrySize: CGSize(width: 390, height: 844),
+            translationService: JSONTranslationService()
         )
         
         VStack {

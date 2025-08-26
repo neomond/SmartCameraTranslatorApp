@@ -9,56 +9,6 @@ import Foundation
 import NaturalLanguage
 import Combine
 
-struct TranslationModel {
-    enum Language: String, CaseIterable {
-        case english = "en"
-        case azerbaijani = "az"
-        case russian = "ru"
-        case german = "de"
-        
-        var displayName: String {
-            switch self {
-            case .english: return "English"
-            case .azerbaijani: return "Azerbaijani"
-            case .russian: return "Russian"
-            case .german: return "German"
-            }
-        }
-        
-        var flag: String {
-            switch self {
-            case .english: return "🇬🇧"
-            case .azerbaijani: return "🇦🇿"
-            case .russian: return "🇷🇺"
-            case .german: return "🇩🇪"
-            }
-        }
-    }
-    
-    struct TranslationResult {
-        let originalText: String
-        let translatedText: String
-        let sourceLanguage: Language
-        let targetLanguage: Language
-        let confidence: Float
-        let timestamp: Date
-    }
-}
-
-// MARK: - Translation Dictionary Models
-struct TranslationDictionary: Codable {
-    let metadata: TranslationMetadata
-    let translations: [String: [String: String]]
-    let phrases: [String: [String: String]]
-}
-
-struct TranslationMetadata: Codable {
-    let version: String
-    let languages: [String]
-    let lastUpdated: String
-    let totalEntries: Int
-}
-
 // MARK: - Translation Cache
 @MainActor
 class TranslationCache {
@@ -80,6 +30,7 @@ class TranslationCache {
 // MARK: - Main Translation Service
 @MainActor
 class JSONTranslationService: ObservableObject {
+    // MARK: - Published Properties
     @Published var sourceLanguage: TranslationModel.Language = .english
     @Published var targetLanguage: TranslationModel.Language = .azerbaijani
     @Published var isTranslating = false
@@ -88,9 +39,11 @@ class JSONTranslationService: ObservableObject {
     @Published var supportsTranslation = true
     @Published var dictionaryStatus: DictionaryStatus = .loading
     
+    // MARK: - Private Properties
     private var cache = TranslationCache()
     private var translationDictionary: TranslationDictionary?
     
+    // MARK: - Dictionary Status
     enum DictionaryStatus {
         case loading
         case ready
@@ -105,10 +58,12 @@ class JSONTranslationService: ObservableObject {
         }
     }
     
+    // MARK: - Initialization
     init() {
         loadTranslationDictionary()
     }
     
+    // MARK: - Dictionary Loading
     private func loadTranslationDictionary() {
         guard let url = Bundle.main.url(forResource: "translations", withExtension: "json") else {
             dictionaryStatus = .error("translations.json not found in bundle")
@@ -126,6 +81,7 @@ class JSONTranslationService: ObservableObject {
         }
     }
     
+    // MARK: - Main Translation Function
     func translate(_ text: String, from source: TranslationModel.Language? = nil, to target: TranslationModel.Language? = nil) async -> String {
         let sourceL = source ?? detectLanguage(for: text)
         let targetL = target ?? targetLanguage
@@ -172,6 +128,7 @@ class JSONTranslationService: ObservableObject {
         return translatedText
     }
     
+    // MARK: - Translation Logic
     private func performTranslation(_ text: String, from source: TranslationModel.Language, to target: TranslationModel.Language) -> String {
         guard let dictionary = translationDictionary else {
             return "Dictionary not loaded"
@@ -226,6 +183,7 @@ class JSONTranslationService: ObservableObject {
         return "[\(text)]"
     }
     
+    // MARK: - Helper Functions
     private func getTranslationConfidence(for translation: String, original: String) -> Float {
         if translation.hasPrefix("[") && translation.hasSuffix("]") {
             return 0.0 // No translation found
@@ -236,7 +194,6 @@ class JSONTranslationService: ObservableObject {
         }
     }
     
-    // Auto-detect language using NaturalLanguage framework
     func detectLanguage(for text: String) -> TranslationModel.Language {
         let recognizer = NLLanguageRecognizer()
         recognizer.processString(text)
@@ -254,7 +211,7 @@ class JSONTranslationService: ObservableObject {
         }
     }
     
-    // Check if translation exists in dictionary
+    // MARK: - Dictionary Utilities
     func hasTranslation(for text: String, from source: TranslationModel.Language, to target: TranslationModel.Language) -> Bool {
         guard let dictionary = translationDictionary else { return false }
         
@@ -276,7 +233,6 @@ class JSONTranslationService: ObservableObject {
         return false
     }
     
-    // Get dictionary statistics
     func getDictionaryStats() -> (words: Int, phrases: Int, languages: [String]) {
         guard let dictionary = translationDictionary else {
             return (0, 0, [])
@@ -289,7 +245,6 @@ class JSONTranslationService: ObservableObject {
         )
     }
     
-    // Search dictionary for similar words
     func searchSimilarWords(for text: String, in language: TranslationModel.Language) -> [String] {
         guard let dictionary = translationDictionary else { return [] }
         
@@ -318,6 +273,7 @@ class JSONTranslationService: ObservableObject {
         return Array(results.prefix(10)) // Limit to 10 results
     }
     
+    // MARK: - Management Functions
     func clearHistory() {
         translationHistory.removeAll()
         cache.clear()
@@ -329,7 +285,6 @@ class JSONTranslationService: ObservableObject {
         targetLanguage = temp
     }
     
-    // Reload dictionary (useful for updates)
     func reloadDictionary() {
         dictionaryStatus = .loading
         loadTranslationDictionary()

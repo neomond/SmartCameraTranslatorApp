@@ -9,29 +9,33 @@ import Foundation
 import AVFoundation
 import Combine
 
+// MARK: - Speech Service
 @MainActor
 class SpeechService: NSObject, ObservableObject {
+    // MARK: - Published Properties
     @Published var isSpeaking = false
     @Published var isEnabled = true
-    @Published var speechRate: Float = 0.5 // 0.0 to 1.0
-    @Published var speechVolume: Float = 1.0 // 0.0 to 1.0
+    @Published var speechRate: Float = 0.5
+    @Published var speechVolume: Float = 1.0
     @Published var error: String?
     
+    // MARK: - Private Properties
     private let synthesizer = AVSpeechSynthesizer()
     private var currentUtterance: AVSpeechUtterance?
-    
-    // Voice preferences for each language
     private var preferredVoices: [String: String] = [:]
     
     static let shared = SpeechService()
     
+    // MARK: - Initialization
     override init() {
         super.init()
         synthesizer.delegate = self
         setupAudioSession()
         loadVoicePreferences()
+        loadSettings()
     }
     
+    // MARK: - Audio Session Setup
     private func setupAudioSession() {
         do {
             try AVAudioSession.sharedInstance().setCategory(
@@ -46,46 +50,38 @@ class SpeechService: NSObject, ObservableObject {
         }
     }
     
+    // MARK: - Voice Configuration
     private func loadVoicePreferences() {
-        // Set default high-quality voices for each language
         preferredVoices = [
-            "en": "com.apple.ttsbundle.Samantha-compact", // English (US)
-            "az": "com.apple.ttsbundle.siri_female_en-US_compact", // Fallback to English for Azerbaijani
-            "ru": "com.apple.ttsbundle.Milena-compact", // Russian
-            "de": "com.apple.ttsbundle.Anna-compact" // German
+            "en": "com.apple.ttsbundle.Samantha-compact",
+            "az": "com.apple.ttsbundle.siri_female_en-US_compact", // Fallback
+            "ru": "com.apple.ttsbundle.Milena-compact",
+            "de": "com.apple.ttsbundle.Anna-compact"
         ]
     }
     
     // MARK: - Main Speech Functions
-    
     func speak(_ text: String, language: TranslationModel.Language, isTranslation: Bool = false) {
         guard isEnabled && !text.isEmpty else { return }
         
-        // Stop any current speech
         stopSpeaking()
         
-        // Filter out text in brackets (untranslated)
         let cleanText = cleanTextForSpeech(text)
         guard !cleanText.isEmpty else { return }
         
         let utterance = AVSpeechUtterance(string: cleanText)
         
-        // Configure voice
         if let voice = getBestVoice(for: language) {
             utterance.voice = voice
         }
         
-        // Configure speech parameters
         utterance.rate = speechRate
         utterance.volume = speechVolume
-        utterance.pitchMultiplier = isTranslation ? 1.1 : 1.0 // Slightly higher pitch for translations
+        utterance.pitchMultiplier = isTranslation ? 1.1 : 1.0
         
         currentUtterance = utterance
-        
-        // Add haptic feedback
         HapticService.shared.impact(style: .light)
         
-        // Start speaking
         synthesizer.speak(utterance)
     }
     
@@ -118,28 +114,25 @@ class SpeechService: NSObject, ObservableObject {
     }
     
     // MARK: - Voice Selection
-    
     private func getBestVoice(for language: TranslationModel.Language) -> AVSpeechSynthesisVoice? {
         let languageCode = language.rawValue
         
-        // Try to get the preferred voice
+        // Try preferred voice first
         if let preferredVoiceId = preferredVoices[languageCode],
            let voice = AVSpeechSynthesisVoice(identifier: preferredVoiceId) {
             return voice
         }
         
-        // Try to get any voice for the language
         let availableVoices = AVSpeechSynthesisVoice.speechVoices()
         
-        // First, try exact language match
+        // Try exact language match
         if let voice = availableVoices.first(where: { $0.language.hasPrefix(languageCode) }) {
             return voice
         }
         
-        // Fallback voices based on language similarity
+        // Language-specific fallbacks
         switch language {
         case .azerbaijani:
-            // Azerbaijani is Turkic, try Turkish then English
             return availableVoices.first { $0.language.hasPrefix("tr") } ??
                    availableVoices.first { $0.language.hasPrefix("en") }
         case .english:
@@ -151,22 +144,20 @@ class SpeechService: NSObject, ObservableObject {
         }
     }
     
-    // MARK: - Text Cleaning
-    
+    // MARK: - Text Processing
     private func cleanTextForSpeech(_ text: String) -> String {
         var cleaned = text
         
-        // Remove text in brackets (untranslated markers)
+        // Remove untranslated markers
         cleaned = cleaned.replacingOccurrences(
             of: #"\[.*?\]"#,
             with: "",
             options: .regularExpression
         )
         
-        // Remove extra whitespace
         cleaned = cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
         
-        // Replace common abbreviations for better pronunciation
+        // Improve pronunciation
         let pronunciationMap: [String: String] = [
             "Dr.": "Doctor",
             "Mr.": "Mister",
@@ -187,7 +178,6 @@ class SpeechService: NSObject, ObservableObject {
     }
     
     // MARK: - Voice Information
-    
     func getAvailableVoices(for language: TranslationModel.Language) -> [AVSpeechSynthesisVoice] {
         let languageCode = language.rawValue
         return AVSpeechSynthesisVoice.speechVoices().filter { voice in
@@ -205,8 +195,7 @@ class SpeechService: NSObject, ObservableObject {
         )
     }
     
-    // MARK: - Settings
-    
+    // MARK: - Settings Management
     func setSpeechRate(_ rate: Float) {
         speechRate = max(0.0, min(1.0, rate))
         UserDefaults.standard.set(speechRate, forKey: "SpeechRate")
@@ -235,30 +224,37 @@ class SpeechService: NSObject, ObservableObject {
 // MARK: - AVSpeechSynthesizerDelegate
 extension SpeechService: AVSpeechSynthesizerDelegate {
     
-    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didStart utterance: AVSpeechUtterance) {
-        isSpeaking = true
-        error = nil
+    // Mark delegate methods as nonisolated to match protocol requirements
+    nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didStart utterance: AVSpeechUtterance) {
+        Task { @MainActor in
+            isSpeaking = true
+            error = nil
+        }
     }
     
-    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-        isSpeaking = false
-        currentUtterance = nil
+    nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+        Task { @MainActor in
+            isSpeaking = false
+            currentUtterance = nil
+        }
     }
     
-    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
-        isSpeaking = false
-        currentUtterance = nil
+    nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
+        Task { @MainActor in
+            isSpeaking = false
+            currentUtterance = nil
+        }
     }
     
-    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didPause utterance: AVSpeechUtterance) {
+    nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didPause utterance: AVSpeechUtterance) {
         // Keep isSpeaking true when paused
     }
     
-    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didContinue utterance: AVSpeechUtterance) {
+    nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didContinue utterance: AVSpeechUtterance) {
         // Already handled in didStart
     }
     
-    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, willSpeakRangeOfSpeechString characterRange: NSRange, utterance: AVSpeechUtterance) {
+    nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, willSpeakRangeOfSpeechString characterRange: NSRange, utterance: AVSpeechUtterance) {
         // Could be used for highlighting text being spoken
     }
 }

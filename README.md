@@ -34,48 +34,7 @@ The project is organized into the following main directories:
 -   `Views/`: SwiftUI views such as `CameraView.swift`, `TranslationOverlay.swift`, `SettingsView.swift`, and `LanguageDownloadView.swift`.
 -   `SmartCameraTranslatorApp.swift`: The main entry point of the application.
 
-## Setup and Installation
-
-To run this project, you will need Xcode installed on your macOS system.
-
-1.  **Clone the repository**:
-    ```bash
-    git clone https://github.com/yourusername/SmartCameraTranslatorApp.git
-    cd SmartCameraTranslatorApp
-    ```
-    (Note: Replace `yourusername/SmartCameraTranslatorApp.git` with your actual repository URL if it's hosted.)
-
-2.  **Open the project in Xcode**:
-    ```bash
-    open SmartCameraTranslator.xcodeproj
-    ```
-
-3.  **Ensure camera permissions**:
-    The app requires camera access. Make sure your iOS device or simulator has camera permissions enabled for the app.
-
-4.  **Run the app**:
-    Select a target device (simulator or physical device) and run the app from Xcode.
-
-## Usage
-
-1.  **Launch the app**: The app will open directly to the camera view.
-2.  **Point at text**: The app will automatically detect text in the camera feed. Bounding boxes will appear around detected words or phrases.
-3.  **Translate**: Tap on a bounding box to see its translation appear in a bubble above the original text.
-4.  **Settings**: Tap the gear icon to access settings, where you can change the source and target languages.
-5.  **Toggle Detection**: Use the eye icon to enable or disable text detection.
-
-## Future Enhancements (Suggested)
-
--   **Speech Output for Translations**: Add a feature to vocalize the translated text.
--   **Save/Bookmark Translations**: Allow users to save important translations for quick access.
--   **Manual Text Input**: Implement a feature to manually type or paste text for translation.
--   **Expanded Dictionary**: Continuously grow the `translations.json` dictionary with more words and phrases.
--   **On-device Machine Learning Translation**: Explore integrating more advanced on-device ML models for translation beyond dictionary lookups for more robust and comprehensive translation capabilities.
 
 ## Contributing
 
 Contributions are welcome! Please feel free to open issues or submit pull requests.
-
-## License
-
-[Specify your license here, e.g., MIT, Apache 2.0, etc.]
